@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DataBridge ERP - Serverless Data Ingestion Platform">
+    <title>DataBridge ERP - Data Ingestion Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <span class="logo-text">DataBridge</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="ingest">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span>Ingest Data</span>
+                </a>
+                <a href="#" class="nav-item" data-section="upload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    <span>Upload File</span>
+                </a>
+                <a href="#" class="nav-item" data-section="status">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <span>Job Status</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="version">v1.0.0</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="page-title" id="pageTitle">Ingest Data</h1>
+                <div class="header-actions">
+                    <button class="btn btn-icon" id="refreshBtn" title="Refresh">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Ingest Section -->
+            <section id="ingestSection" class="content-section active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Data Source Configuration</h2>
+                        <p>Configure the source from which to ingest ERP data</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="ingestForm">
+                            <div class="form-group">
+                                <label for="sourceType">Source Type</label>
+                                <select id="sourceType" required>
+                                    <option value="">Select source type...</option>
+                                    <option value="ftp">FTP Server</option>
+                                    <option value="http">HTTP Endpoint</option>
+                                    <option value="tcp">TCP Endpoint</option>
+                                    <option value="api">API Endpoint</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tableName">Table Name</label>
+                                <input type="text" id="tableName" placeholder="e.g., sales_data, inventory" required>
+                                <small>Data will be partitioned by this name in S3</small>
+                            </div>
+
+                            <!-- FTP Configuration -->
+                            <div id="ftpConfig" class="source-config hidden">
+                                <h3>FTP Configuration</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="ftpHost">Host</label>
+                                        <input type="text" id="ftpHost" placeholder="ftp.example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ftpPort">Port</label>
+                                        <input type="number" id="ftpPort" value="21">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="ftpUsername">Username</label>
+                                        <input type="text" id="ftpUsername" placeholder="Username">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ftpPassword">Password</label>
+                                        <input type="password" id="ftpPassword" placeholder="Password">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ftpFilePath">File Path</label>
+                                    <input type="text" id="ftpFilePath" placeholder="/path/to/file.csv">
+                                </div>
+                            </div>
+
+                            <!-- HTTP Configuration -->
+                            <div id="httpConfig" class="source-config hidden">
+                                <h3>HTTP Configuration</h3>
+                                <div class="form-group">
+                                    <label for="httpUrl">URL</label>
+                                    <input type="url" id="httpUrl" placeholder="https://api.example.com/data">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="httpMethod">Method</label>
+                                        <select id="httpMethod">
+                                            <option value="GET">GET</option>
+                                            <option value="POST">POST</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="httpFilename">Filename</label>
+                                        <input type="text" id="httpFilename" placeholder="data.json">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="httpHeaders">Headers (JSON)</label>
+                                    <textarea id="httpHeaders" placeholder='{"Authorization": "Bearer token"}'></textarea>
+                                </div>
+                            </div>
+
+                            <!-- TCP Configuration -->
+                            <div id="tcpConfig" class="source-config hidden">
+                                <h3>TCP Configuration</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="tcpHost">Host</label>
+                                        <input type="text" id="tcpHost" placeholder="server.example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tcpPort">Port</label>
+                                        <input type="number" id="tcpPort" placeholder="9000">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="tcpFilename">Filename</label>
+                                    <input type="text" id="tcpFilename" placeholder="data.csv">
+                                </div>
+                            </div>
+
+                            <!-- API Configuration (similar to HTTP) -->
+                            <div id="apiConfig" class="source-config hidden">
+                                <h3>API Configuration</h3>
+                                <div class="form-group">
+                                    <label for="apiUrl">API URL</label>
+                                    <input type="url" id="apiUrl" placeholder="https://api.example.com/export">
+                                </div>
+                                <div class="form-group">
+                                    <label for="apiAuth">Authentication</label>
+                                    <select id="apiAuthType">
+                                        <option value="bearer">Bearer Token</option>
+                                        <option value="basic">Basic Auth</option>
+                                        <option value="api_key">API Key</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="apiToken">Token / Credentials</label>
+                                    <input type="password" id="apiToken" placeholder="Enter token or credentials">
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 2L11 13"/>
+                                        <path d="M22 2l-7 20-4-9-9-4 20-7z"/>
+                                    </svg>
+                                    Start Ingestion
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section id="uploadSection" class="content-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Upload File</h2>
+                        <p>Upload a local file for processing</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm">
+                            <div class="form-group">
+                                <label for="uploadTableName">Table Name</label>
+                                <input type="text" id="uploadTableName" placeholder="e.g., sales_data, inventory" required>
+                            </div>
+
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                </div>
+                                <p class="upload-text">Drag and drop a file here, or click to browse</p>
+                                <p class="upload-hint">Supported formats: CSV, JSON, Excel (.xls, .xlsx)</p>
+                                <input type="file" id="fileInput" accept=".csv,.json,.xls,.xlsx,.txt" hidden>
+                            </div>
+
+                            <div id="selectedFile" class="selected-file hidden">
+                                <div class="file-info">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                    </svg>
+                                    <span id="fileName"></span>
+                                    <span id="fileSize"></span>
+                                </div>
+                                <button type="button" class="btn btn-icon" id="removeFile">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="17 8 12 3 7 8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    Upload & Process
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status Section -->
+            <section id="statusSection" class="content-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Job Status</h2>
+                        <p>Monitor ingestion and transformation jobs</p>
+                        <div class="filter-group">
+                            <select id="statusFilter">
+                                <option value="">All Jobs</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="PROCESSING">Processing</option>
+                                <option value="TRANSFORMING">Transforming</option>
+                                <option value="COMPLETED">Completed</option>
+                                <option value="FAILED">Failed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="jobsList" class="jobs-list">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                <p>No jobs found</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

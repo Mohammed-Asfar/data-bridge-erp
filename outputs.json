@@ -1,0 +1,9 @@
+{
+  "DataBridgeErpStack": {
+    "RawBucketName": "databridgeerpstack-rawdatabucket57f26c03-mbg6e35rx3vo",
+    "JobStatusTableName": "databridge-job-status",
+    "ApiEndpoint": "https://u1100lt0w8.execute-api.ap-south-1.amazonaws.com/v1/",
+    "ParquetBucketName": "databridgeerpstack-parquetdatalake528f9295-m1k9wnnb1jjz",
+    "DataBridgeApiEndpoint95936E0B": "https://u1100lt0w8.execute-api.ap-south-1.amazonaws.com/v1/"
+  }
+}
