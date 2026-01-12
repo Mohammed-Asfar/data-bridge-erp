@@ -3,15 +3,12 @@ from aws_cdk import (
     Stack,
     RemovalPolicy,
     CfnOutput,
-    BundlingOptions,
-    DockerImage,
     aws_s3 as s3,
     aws_lambda as lambda_,
     aws_apigateway as apigw,
     aws_dynamodb as dynamodb,
 )
 from constructs import Construct
-import os
 
 
 class DataBridgeErpStack(Stack):
@@ -23,7 +20,7 @@ class DataBridgeErpStack(Stack):
     - Lambda functions for ingestion, transformation, upload, and status
     - API Gateway REST API with /ingest, /upload, /status endpoints
     - DynamoDB table for job status tracking
-    - Lambda Layer with pandas, pyarrow, and openpyxl
+    - Uses AWS SDK for pandas Lambda Layer (includes pandas + pyarrow)
     """
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -98,26 +95,15 @@ class DataBridgeErpStack(Stack):
         )
 
         # ============================================================
-        # Lambda Layer with pandas, pyarrow, openpyxl
+        # AWS SDK for pandas Layer (includes pandas + pyarrow)
+        # https://aws-sdk-pandas.readthedocs.io/en/stable/layers.html
         # ============================================================
         
-        # Create Lambda Layer with dependencies using Docker bundling
-        self.data_layer = lambda_.LayerVersion(
-            self, "DataProcessingLayer",
-            code=lambda_.Code.from_asset(
-                "lambda-layer",
-                bundling=BundlingOptions(
-                    image=DockerImage.from_registry("public.ecr.aws/lambda/python:3.12"),
-                    command=[
-                        "bash", "-c",
-                        "pip install pandas pyarrow openpyxl -t /asset-output/python && "
-                        "find /asset-output -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true && "
-                        "find /asset-output -type d -name 'tests' -exec rm -rf {} + 2>/dev/null || true"
-                    ],
-                )
-            ),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_12],
-            description="Layer with pandas, pyarrow, and openpyxl for data processing",
+        # Using the official AWS SDK for pandas layer for ap-south-1
+        # Layer ARN format: arn:aws:lambda:<region>:336392948345:layer:AWSSDKPandas-Python312:*
+        self.pandas_layer = lambda_.LayerVersion.from_layer_version_arn(
+            self, "AWSSDKPandasLayer",
+            layer_version_arn=f"arn:aws:lambda:{self.region}:336392948345:layer:AWSSDKPandas-Python312:16"
         )
 
         # ============================================================
@@ -131,7 +117,7 @@ class DataBridgeErpStack(Stack):
         }
 
         # ============================================================
-        # Lambda Functions with Layer
+        # Lambda Functions with AWS SDK for pandas Layer
         # ============================================================
         
         # Ingestion Handler - orchestrates data retrieval
@@ -144,7 +130,7 @@ class DataBridgeErpStack(Stack):
             timeout=Duration.minutes(5),
             memory_size=512,
             environment=common_env,
-            layers=[self.data_layer],
+            layers=[self.pandas_layer],
         )
 
         # Transform Handler - converts data to Parquet
@@ -157,7 +143,7 @@ class DataBridgeErpStack(Stack):
             timeout=Duration.minutes(10),
             memory_size=1024,
             environment=common_env,
-            layers=[self.data_layer],
+            layers=[self.pandas_layer],
         )
 
         # Upload Handler - handles file uploads from frontend
@@ -170,7 +156,7 @@ class DataBridgeErpStack(Stack):
             timeout=Duration.minutes(2),
             memory_size=512,
             environment=common_env,
-            layers=[self.data_layer],
+            layers=[self.pandas_layer],
         )
 
         # Status Handler - returns job status

@@ -5,8 +5,7 @@
 
 // Configuration - Update this after CDK deployment
 const CONFIG = {
-    // API_BASE_URL: 'https://your-api-gateway-url.execute-api.region.amazonaws.com/v1',
-    API_BASE_URL: 'https://u1100lt0w8.execute-api.ap-south-1.amazonaws.com/v1',
+    API_BASE_URL: 'https://61t3yw5zp4.execute-api.ap-south-1.amazonaws.com/v1',
     POLL_INTERVAL: 3000, // Job status polling interval (ms)
 };
 
